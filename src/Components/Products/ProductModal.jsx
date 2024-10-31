@@ -1,6 +1,7 @@
 // ProductModal.jsx
 import React from "react";
 import { Modal, Box, Typography, CardMedia, Button } from "@mui/material";
+import { Star } from "@mui/icons-material";
 
 function ProductModal({ open, handleClose, product }) {
     return (
@@ -42,8 +43,9 @@ function ProductModal({ open, handleClose, product }) {
                             Price: ${product.price}
                         </Typography>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1, display: 'flex', alignItems: 'center' }}>
                                 Rating: {product.rating.rate}
+                                <Star sx={{ color: 'yellow' }} />
                             </Typography>
                             <Button
                                 variant="contained"
