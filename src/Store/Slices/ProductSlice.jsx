@@ -1,10 +1,21 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-export const fetchProductById = createAsyncThunk(
-    'product/fetchProductById',
-    async (id) => {
-        const response = await fetch(`https://fakestoreapi.com/products/${id}`);
-        const data = await response.json();
-        return data;
+
+export const fetchProduct = createAsyncThunk(
+    'product/fetchProduct',
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await fetch(`https://fakestoreapi.com/products`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch product');
+            }
+            const data = await response.json();
+            if (!data) {
+                throw new Error('No product data found');
+            }
+            return data;
+        } catch (error) {
+            return rejectWithValue(error.message || 'Unknown error occurred');
+        }
     }
 );
 
@@ -18,16 +29,16 @@ const productSlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder
-            .addCase(fetchProductById.pending, (state) => {
+            .addCase(fetchProduct.pending, (state) => {
                 state.status = "loading";
             })
-            .addCase(fetchProductById.fulfilled, (state, action) => {
+            .addCase(fetchProduct.fulfilled, (state, action) => {
                 state.status = "succeeded";
                 state.product = action.payload;
             })
-            .addCase(fetchProductById.rejected, (state, action) => {
+            .addCase(fetchProduct.rejected, (state, action) => {
                 state.status = "failed";
-                state.error = action.error.message;
+                state.error = action.payload;
             });
     },
 });
