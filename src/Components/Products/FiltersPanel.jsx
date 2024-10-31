@@ -3,7 +3,7 @@ import { Slider, Checkbox, FormControlLabel, TextField, Box, Select, MenuItem, I
 
 const FiltersPanel = ({ searchTerm, handleSearchChange, categoryFilter, handleCategoryChange, priceRange, handlePriceChange, ratingFilter, handleRatingChange, sortOption, setSortOption }) => {
     return (
-        <Box sx={{ width: 250, p: 2, borderRight: "1px solid #ddd" }}>
+        <Box sx={{ width: { xs: '90%', md: 250 }, p: 2, borderRight: { xs: 'none', md: '1px solid #ddd' } }}>
             <Typography variant="h6">Filters</Typography>
             <TextField
                 label="Search"
@@ -21,16 +21,15 @@ const FiltersPanel = ({ searchTerm, handleSearchChange, categoryFilter, handleCa
                     key={category}
                 />
             ))}
-
             <Typography variant="subtitle1">Price Range</Typography>
             <Slider
                 value={priceRange}
                 onChange={handlePriceChange}
                 valueLabelDisplay="auto"
                 min={0}
-                max={1000}
+                max={600}
+                sx={{ mb: 2 }}
             />
-
             <Typography variant="subtitle1">Rating</Typography>
             <Slider
                 value={ratingFilter}
@@ -40,9 +39,9 @@ const FiltersPanel = ({ searchTerm, handleSearchChange, categoryFilter, handleCa
                 max={5}
                 step={1}
                 marks
+                sx={{ mb: 2 }}
             />
-
-            <FormControl fullWidth variant="outlined" sx={{ mt: 2 }}>
+            <FormControl fullWidth variant="outlined">
                 <InputLabel id="sort-label">Sort By</InputLabel>
                 <Select
                     labelId="sort-label"

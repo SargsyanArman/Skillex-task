@@ -37,77 +37,89 @@ function Products() {
         dispatch(fetchProduct());
     }, [dispatch]);
 
+    const filteredProducts = useMemo(() => {
+        let filtered = product.filter((item) =>
+            item.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+        );
+
+        if (categoryFilter.length > 0) {
+            filtered = filtered.filter((item) => categoryFilter.includes(item.category));
+        }
+
+        if (debouncedPriceRange) {
+            filtered = filtered.filter(
+                (item) => item.price >= debouncedPriceRange[0] && item.price <= debouncedPriceRange[1]
+            );
+        }
+
+        if (debouncedRatingFilter) {
+            filtered = filtered.filter((item) => item.rating.rate >= debouncedRatingFilter);
+        }
+
+        switch (sortOption) {
+            case "popularity":
+                return filtered.sort((a, b) => b.rating.count - a.rating.count);
+            case "priceAsc":
+                return filtered.sort((a, b) => a.price - b.price);
+            case "priceDesc":
+                return filtered.sort((a, b) => b.price - a.price);
+            case "rating":
+                return filtered.sort((a, b) => b.rating.rate - a.rating.rate);
+            default:
+                return filtered;
+        }
+    }, [product, categoryFilter, debouncedSearchTerm, debouncedPriceRange, debouncedRatingFilter, sortOption]);
+
     const handleOpen = (product) => {
         setSelectedProduct(product);
         setOpen(true);
     };
 
-    const handleClose = () => setOpen(false);
-
-    const filteredProducts = useMemo(() => {
-        if (!Array.isArray(product)) return [];
-        return product.filter((item) => {
-            const matchesCategory = categoryFilter.length ? categoryFilter.includes(item.category) : true;
-            const matchesPrice = item.price >= debouncedPriceRange[0] && item.price <= debouncedPriceRange[1];
-            const matchesRating = item.rating.rate >= debouncedRatingFilter;
-            const matchesSearch = item.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
-            return matchesCategory && matchesPrice && matchesRating && matchesSearch;
-        });
-    }, [product, categoryFilter, debouncedPriceRange, debouncedRatingFilter, debouncedSearchTerm]);
-
-    const sortedProducts = useMemo(() => {
-        const sortedArray = [...filteredProducts];
-        switch (sortOption) {
-            case "priceAsc":
-                sortedArray.sort((a, b) => a.price - b.price);
-                break;
-            case "priceDesc":
-                sortedArray.sort((a, b) => b.price - a.price);
-                break;
-            case "rating":
-                sortedArray.sort((a, b) => b.rating.rate - a.rating.rate);
-                break;
-            default:
-                break;
-        }
-        return sortedArray;
-    }, [filteredProducts, sortOption]);
-
-    useEffect(() => {
-        localStorage.setItem("categoryFilter", JSON.stringify(categoryFilter));
-        localStorage.setItem("priceRange", JSON.stringify(priceRange));
-        localStorage.setItem("ratingFilter", JSON.stringify(ratingFilter));
-        localStorage.setItem("searchTerm", searchTerm);
-        localStorage.setItem("sortOption", sortOption);
-    }, [categoryFilter, priceRange, ratingFilter, searchTerm, sortOption]);
-
-
-    if (status === "loading") return <CircularProgress />;
-    if (status === "failed") return <p>Error: {error}</p>;
+    const handleClose = () => {
+        setOpen(false);
+    };
 
     return (
-        <Box sx={{ display: "flex" }}>
+        <Box display="flex" flexDirection={{ xs: "column", md: "row" }}>
             <FiltersPanel
                 searchTerm={searchTerm}
-                handleSearchChange={(e) => setSearchTerm(e.target.value)}
+                handleSearchChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    localStorage.setItem("searchTerm", e.target.value);
+                }}
                 categoryFilter={categoryFilter}
-                handleCategoryChange={(e) => setCategoryFilter((prev) =>
-                    prev.includes(e.target.value)
-                        ? prev.filter((cat) => cat !== e.target.value)
-                        : [...prev, e.target.value]
-                )}
+                handleCategoryChange={(e) => {
+                    const category = e.target.value;
+                    const newCategoryFilter = categoryFilter.includes(category)
+                        ? categoryFilter.filter((c) => c !== category)
+                        : [...categoryFilter, category];
+
+                    setCategoryFilter(newCategoryFilter);
+                    localStorage.setItem("categoryFilter", JSON.stringify(newCategoryFilter));
+                }}
                 priceRange={priceRange}
-                handlePriceChange={(e, newValue) => setPriceRange(newValue)}
+                handlePriceChange={(event, newValue) => {
+                    setPriceRange(newValue);
+                    localStorage.setItem("priceRange", JSON.stringify(newValue));
+                }}
                 ratingFilter={ratingFilter}
-                handleRatingChange={(e, newValue) => setRatingFilter(newValue)}
+                handleRatingChange={(event, newValue) => {
+                    setRatingFilter(newValue);
+                    localStorage.setItem("ratingFilter", newValue);
+                }}
                 sortOption={sortOption}
-                setSortOption={setSortOption}
+                setSortOption={(value) => {
+                    setSortOption(value);
+                    localStorage.setItem("sortOption", value);
+                }}
             />
-
-            <Box sx={{ flexGrow: 1, p: 2 }}>
-                <ProductList products={sortedProducts} handleOpen={handleOpen} />
+            <Box flexGrow={1} p={2}>
+                {status === "loading" && <CircularProgress />}
+                {status === "failed" && <h1>{error}</h1>}
+                {status === "succeeded" && (
+                    <ProductList products={filteredProducts} handleOpen={handleOpen} />
+                )}
             </Box>
-
             <ProductModal open={open} handleClose={handleClose} product={selectedProduct} />
         </Box>
     );
