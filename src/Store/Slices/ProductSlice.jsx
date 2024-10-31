@@ -22,7 +22,7 @@ export const fetchProduct = createAsyncThunk(
 const productSlice = createSlice({
     name: "product",
     initialState: {
-        product: null,
+        product: [],
         status: "idle",
         error: null,
     },
