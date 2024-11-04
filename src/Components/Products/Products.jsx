@@ -34,8 +34,12 @@ function Products() {
     const debouncedRatingFilter = useDebounce(ratingFilter, 300);
 
     useEffect(() => {
-        dispatch(fetchProduct());
+        const fetchData = async () => {
+            await dispatch(fetchProduct());
+        };
+        fetchData();
     }, [dispatch]);
+
 
     const filteredProducts = useMemo(() => {
         let filtered = product.filter((item) =>
